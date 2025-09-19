@@ -1,0 +1,9 @@
+{
+  "name": "آٹا چکی کیلکولیٹر",
+  "short_name": "چکی",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#3b82f6",
+  "lang": "ur"
+}

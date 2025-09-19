@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آٹا چکی کیلکولیٹر</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="p-4">
+
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold text-center my-8 text-gray-800">آٹا چکی کیلکولیٹر</h1>
+
+        <!-- Form Section -->
+        <div id="form-section" class="card p-6 mb-8">
+            <form id="calculator-form" class="space-y-6">
+                <div>
+                    <label for="customerName" class="block text-right text-gray-700">کسٹمر کا نام</label>
+                    <input type="text" id="customerName" class="input-field" placeholder="کسٹمر کا نام درج کریں" required>
+                </div>
+                <div>
+                    <label for="totalWeight" class="block text-right text-gray-700">کل وزن (کلوگرام)</label>
+                    <input type="number" step="0.01" id="totalWeight" class="input-field" placeholder="کل وزن" required>
+                </div>
+                <div>
+                    <label for="flourRatePerKg" class="block text-right text-gray-700">آٹے کی فی کلو قیمت (روپے)</label>
+                    <input type="number" step="0.01" id="flourRatePerKg" class="input-field" placeholder="آٹے کی قیمت" required>
+                </div>
+                <div>
+                    <label for="advanceFlour" class="block text-right text-gray-700">ایڈوانس آٹا (کلوگرام)</label>
+                    <input type="number" step="0.01" id="advanceFlour" class="input-field" placeholder="ایڈوانس آٹا">
+                </div>
+                <div class="flex items-center justify-between">
+                    <label for="noSafai" class="checkbox-label text-gray-700">صفائی نہیں کرنی (پسائی کی قیمت 3.00 روپے ہو جائے گی)</label>
+                    <input type="checkbox" id="noSafai" class="w-5 h-5">
+                </div>
+                <div class="flex items-center justify-between">
+                    <label for="noKatoti" class="checkbox-label text-gray-700">کٹوتی نہیں کرنی</label>
+                    <input type="checkbox" id="noKatoti" class="w-5 h-5">
+                </div>
+                <div class="flex items-center justify-between">
+                    <label for="billInFlour" class="checkbox-label text-gray-700">بل آٹا سے ادا ہوگا</label>
+                    <input type="checkbox" id="billInFlour" class="w-5 h-5">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white btn transition-colors">حساب کریں</button>
+            </form>
+        </div>
+
+        <!-- Receipt Section -->
+        <div id="receipt-section" class="card p-6 mb-8 hidden">
+            <h2 class="text-2xl font-bold text-center mb-4 text-gray-800">رسید</h2>
+            <div id="receipt-details" class="text-gray-700 leading-8"></div>
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-6 justify-center">
+                <button id="save-backup-btn" class="bg-green-500 hover:bg-green-600 text-white btn transition-colors">✅ تصدیق</button>
+                <button id="save-khata-btn" class="bg-orange-500 hover:bg-orange-600 text-white btn transition-colors">📒 کھاتہ میں شامل کریں</button>
+                <button id="delete-receipt-btn" class="bg-red-500 hover:bg-red-600 text-white btn transition-colors">❌ ختم کریں</button>
+            </div>
+        </div>
+
+        <!-- Records Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-center mb-4 text-gray-800">ریکارڈز</h2>
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                <select id="record-type-dropdown" class="flex-1 input-field">
+                    <option value="default" selected disabled>ریکارڈ دیکھیں</option>
+                    <option value="backup">بیک اپ</option>
+                    <option value="khata">کھاتے والا</option>
+                    <option value="summary">مجموعی ریکارڈ</option>
+                </select>
+                <div class="flex-1">
+                    <label for="date-filter" class="sr-only">تاریخ</label>
+                    <input type="date" id="date-filter" class="input-field mb-2" placeholder="تاریخ">
+                </div>
+                <button id="view-records-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full transition-colors font-bold">دیکھیں</button>
+            </div>
+
+            <div id="records-list" class="space-y-4" onclick="handleRecordAction(event)">
+            </div>
+            <div id="summary-section" class="hidden text-center text-gray-800">
+                <p class="text-xl font-bold">کل خالص وزن: <span id="total-net-weight"></span> کلوگرام</p>
+                <p class="text-xl font-bold">کل کٹوتی کا وزن: <span id="total-katoti-weight"></span> کلوگرام</p>
+                <p class="text-xl font-bold">کل رقم: <span id="total-amount"></span> روپے</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="modal hidden">
+        <div class="modal-content text-right">
+            <h3 class="text-xl font-bold mb-4">تصدیق</h3>
+            <p id="confirmation-text" class="mb-4">کیا آپ واقعی یہ ریکارڈ محفوظ کرنا چاہتے ہیں؟</p>
+            <div class="flex justify-end space-x-2 space-x-reverse">
+                <button id="cancel-action-btn" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-full transition-colors">منسوخ کریں</button>
+                <button id="confirm-action-btn" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full transition-colors">تصدیق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="payment-modal" class="modal hidden">
+        <div class="modal-content text-right">
+            <h3 class="text-xl font-bold mb-4">وصولی کی تفصیلات</h3>
+            <p class="mb-4">بقایا رقم: <span id="payment-amount-display" class="font-bold"></span> روپے</p>
+            <div class="mb-4">
+                <label for="paid-amount" class="block text-gray-700">وصول شدہ رقم:</label>
+                <input type="number" step="0.01" id="paid-amount" class="input-field mt-1" placeholder="رقم درج کریں">
+            </div>
+            <div class="flex justify-end space-x-2 space-x-reverse">
+                <button id="close-modal-btn" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-full transition-colors">منسوخ کریں</button>
+                <button id="submit-payment-btn" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full transition-colors">جمع کرائیں</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Weight Modal -->
+    <div id="add-weight-modal" class="modal hidden">
+        <div class="modal-content text-right space-y-4">
+            <h3 class="text-xl font-bold mb-4">وزن شامل کریں</h3>
+            <p class="mb-4">کسٹمر: <span id="add-weight-customer-name" class="font-bold"></span></p>
+            <div>
+                <label for="additional-weight" class="block text-gray-700">اضافی وزن (کلوگرام):</label>
+                <input type="number" step="0.01" id="additional-weight" class="input-field mt-1" placeholder="اضافی وزن">
+            </div>
+            <div>
+                <label for="addFlourRatePerKg" class="block text-gray-700">آٹے کی فی کلو قیمت (روپے)</label>
+                <input type="number" step="0.01" id="addFlourRatePerKg" class="input-field" placeholder="آٹے کی قیمت">
+            </div>
+            <div>
+                <label for="addAdvanceFlour" class="block text-gray-700">ایڈوانس آٹا (کلوگرام)</label>
+                <input type="number" step="0.01" id="addAdvanceFlour" class="input-field" placeholder="ایڈوانس آٹا">
+            </div>
+            <div class="flex items-center justify-between">
+                <label for="addNoSafai" class="checkbox-label text-gray-700">صفائی نہیں کرنی</label>
+                <input type="checkbox" id="addNoSafai" class="w-5 h-5">
+            </div>
+            <div class="flex items-center justify-between">
+                <label for="addNoKatoti" class="checkbox-label text-gray-700">کٹوتی نہیں کرنی</label>
+                <input type="checkbox" id="addNoKatoti" class="w-5 h-5">
+            </div>
+            <div class="flex items-center justify-between">
+                <label for="addBillInFlour" class="checkbox-label text-gray-700">بل آٹا سے ادا ہوگا</label>
+                <input type="checkbox" id="addBillInFlour" class="w-5 h-5">
+            </div>
+            <div class="flex justify-end space-x-2 space-x-reverse">
+                <button id="close-add-modal-btn" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-full transition-colors">منسوخ کریں</button>
+                <button id="submit-add-weight-btn" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full transition-colors">شامل کریں</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
